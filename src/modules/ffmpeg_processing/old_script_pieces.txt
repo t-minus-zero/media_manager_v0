@@ -1,0 +1,14 @@
+# Prepare the images for the video
+    images = []
+    for image_file in image_files:
+        image = imageio.imread(image_file)
+        resized_image = resize_image(image, video_width)
+        padded_image = np.pad(resized_image, ((0, video_height - resized_image.shape[0]), (0, 0), (0, 0)), mode='constant')
+        images.append(padded_image)
+
+def resize_image(image, target_width):
+    height, width, _ = image.shape
+    aspect_ratio = float(height) / float(width)
+    target_height = int(target_width * aspect_ratio)
+    resized_image = resize(image, (target_height, target_width), mode='constant', preserve_range=True).astype(np.uint8)
+    return resized_image
