@@ -1,20 +1,46 @@
 from fasthtml.common import *
 import os
-from src.components.folder_card import folder_card
 
-def file_viewer(current_path):
-    if not current_path or current_path == "/":
-        current_path = "storage/projects"  # Default path to projects folder
-    
-    entries = os.listdir(current_path)
-    cards = [folder_card(name, os.path.join(current_path, name), f"/files?path={os.path.join(current_path, name)}") for name in entries]
+def album_card(name, path, file_count):
+    icon = "https://cdn-icons-png.flaticon.com/512/716/716784.png"
+    print(path)
+    return Div(
+        Div(
+            Div(Img(src=icon, Class="h-8", alt="Preview"), Class="h-full"),
+            Div(P(name, Class="text-sm font-medium"), P(f"Files: {file_count}", Class="text-xs"), Class="flex flex-col items-left justify-center h-full pl-2"),
+            Class= "w-full p-2 flex flex-row items-center justify-center rounded-lg hover:bg-zinc-100 cursor-pointer bg-zinc-0",
+            hx_post="/view-files",
+            hx_trigger="click",
+            hx_vals={"path": f"{path}"},
+            hx_target="#view-files",
+            hx_swap="innerHTML",
+        ),
+    )
 
-    parent_path = os.path.dirname(current_path)
-    back_link = A("Back", href=f"/files?path={parent_path}", Class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded") if current_path != "storage/projects" else ""
+def file_viewer(album_paths_list):
+    entries = album_paths_list
+
+    def get_folder_info(folder_path):
+        """Returns the folder name and the number of files inside the folder minus one."""
+        files = os.listdir(folder_path)
+        return len(files)
+    cards = [
+        album_card(
+            "album_name", 
+            album_path,
+            get_folder_info(album_path)
+        ) 
+        for album_path in album_paths_list
+    ]
 
     return Div(
-        Div('Current Directory:', Class="text-xl font-bold p-4"),
-        Div(back_link, id='back', Class="p-2"),
-        Div(*cards, Class="flex flex-wrap justify-around", style="padding: 10px;"),
-        Class="flex flex-col space-y-4"
+        Div(
+            Div(*cards, Id="view-albums", Class="flex flex-col gap-1 p-2 min-w-36 w-36 h-full border-zinc-200 border-r-1 overflow-y-scroll"),
+            Div( 
+                Id="view-files" , 
+                Class="flex h-full w-full shrink overflow-y-scroll"
+            ),
+            Class="flex flex-row h-full w-full overflow-hidden"
+        ),
+        Class="flex flex-col w-full h-full"
     )

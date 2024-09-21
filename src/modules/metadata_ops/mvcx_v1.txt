@@ -1,0 +1,33 @@
+MVCX Object structure:
+{
+    "info" : {
+        "version" : 1, # the version of the mvcx it is using,
+        "album_id" : 'ID240922145313',  # 'ID'+ last 2 digits of year + month + day + hour + minutes + seconds 
+    },
+    "items" : [{...}, {...}]
+}
+
+# single item object : 
+    {
+        "item_id" : album_id + '_I(n+1)', 
+        "versions" : [{...}, {...}],
+    }  
+
+# single version object : 
+    {
+        "item_version_id" : item_id + '_V(n+1)',
+        "relative_url" : "path",  # relative to storage
+        "edits" : [{...}, {...}]
+    }
+
+# single edit object : {
+        "item_version_edit_id" : item_version + '_E(n+1)'
+        "edit_name" : "soda face morph / converted to jpg from HEIC",
+        "success": true / false,
+        "edit_detail" : "edited face using KiaraM morph settings"
+        "error_message" : "Can't find face / waited too long / ",
+    }
+
+name and id of files should look like this: ID240922145313_I1_V1.jpg
+items ordered in ascending order using Ix part of id/name
+versions ordered in descending order using Vx part of id/name  

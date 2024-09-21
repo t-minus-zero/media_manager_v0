@@ -1,0 +1,39 @@
+
+
+# mvcx operations:
+
+def load_album(path):
+    if (Check for the existance of mvcx.json at the given path):
+        #if mvcx.json is found
+        new_mvcx = load_json_as_dataobj_from_xpath(path)
+    else: 
+        #if mvcx.json is not found
+        new_mvcx = create_new_mvcx() # returns the initializied mvcx data object
+    
+    mvcx = update_mvcx(new_mvcx, path) # returns the updated mvcx
+    save_dataobj_as_xname_json__at_xpath(mvcx.json, path)
+    return mvcx
+
+def create_new_mvcx():
+    new_mvcx = it has an initial data object example coded-in that is assigned
+    return new_mvcx
+
+def update_mvcx(current_mvcx, file_paths_list):
+    checks mvcx version and validity
+    loads all the files in the path
+    sorts and categorizes the files in the path
+    goes trough the mvcx and checks what needs to be updated or added
+    return updated_mvcx
+
+def create_new_mvcx():
+    new_mvcx = it has an initial data object example coded-in that is assigned
+    return new_mvcx
+
+# json operations:
+
+def load_json_as_dataobj_from_xpath(path):
+    data_obj = loads a json in memory from the given path
+    return data_obj
+
+def save_dataobj_as_xname_json__at_xpath(name,path):
+    saves a data object as json with the given name at a given path
