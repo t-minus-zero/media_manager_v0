@@ -31,6 +31,8 @@ class AlbumManager:
             "url": None,  # relative to storage
             "file_type": None,
             "extension": None,
+            "status": 'edit', # edit, ready
+            "group": None,
             "edits": [AlbumManager.create_edit()]  # Includes one empty edit object
         }
 
@@ -40,7 +42,8 @@ class AlbumManager:
         versions = [AlbumManager.create_version(item_id, 1)]  # Create one version per item initially
         return {
             "item_id": item_id,
-            "versions": versions
+            "versions": versions,
+            "flag": 'maybe', # unusable, maybe, best
         }
 
     @staticmethod

@@ -1,5 +1,6 @@
 from fasthtml.fastapp import *
 from fasthtml.common import *
+from typing import Any
 from src.navigation import navigation, screensToggle
 from src.file_viewer import file_viewer
 from src.modules.ffmpeg_processing.heic_to_jpg import convert_heic_to_jpg
@@ -12,6 +13,7 @@ import os
 import logging
 from src.modules.metadata_ops.persona_ops import PersonaManager
 from src.modules.metadata_ops.album_ops import AlbumManager
+from src.modules.web_gui.file_card import GUICards
 
 app, rt = fast_app(
     pico=False,
@@ -73,33 +75,36 @@ def get(path: str):
 
 @rt('/view-files')
 def post(path: str):
-    #files = os.listdir(path)
-    #result = [file_card(file, os.path.join(path, file)) for file in files]
-    album_data = AlbumManager.load_album(path)
-    result = [file_card(item['versions'][0]['name'], item['versions'][0]['url']) for item in album_data['items']]
-    return Div(
-                *result,
-                Class="w-full flex flex-wrap justify-center",
-                #hx_swap_oob="true"
-            )
+    album_data = AlbumManager.load_album(path) 
+    persona_manager.set_album(album_data)
+    result = [GUICards.file_card(item) for item in album_data['items']]
+    return Div(*result, Class="w-full h-full flex flex-wrap justify-center")
+
+@rt('/enter-key-test')
+def post(key: str):
+    print(key)
+    return Div(f"Key pressed: {key}", Id="response")
 
 @rt('/view-edit')
-def post(path: str, name:str):
+def post(item_id: str):
+    album_data = persona_manager.album
+    matching_item = next((item for item in album_data['items'] if item['item_id'] == item_id), None)
+    image_url = matching_item['versions'][-1]['url']
+    swapper = GUICards.file_card_active(matching_item)
     return  Div(
-                Div(Img(src=path, Class="h-full rounded-md", alt="Preview"), Class="flex h-full w-full items-center justify-center"),
+                Div(Img(src=image_url, Class="h-full rounded-md", alt="Preview"), Class="flex h-full w-full items-center justify-center"),
                 Class= "h-full w-full p-2 flex items-center justify-center",
-            ), Div(
-            Div(Img(src=path, Class="h-full rounded-md hover:scale-150 transition-all ease-in-out duration-150", alt="Preview"), Class="h-4/5 p-1"),
-            Div(P(name, Class="text-xs text-zinc-300"), Class="flex flex-col items-center justify-center h-1/5"),
-            Id = name,
-            Class= "h-48 w-36 p-2 flex flex-col items-center justify-center rounded-lg bg-zinc-300 hover:bg-zinc-100 cursor-pointer",
-            hx_post="/view-edit",
-            hx_trigger="click",
-            hx_vals={"path": path, "name" : name},
-            hx_target="#view-edit",
-            hx_swap="innerHTML",
-            hx_swap_oob="true"
-        )
+            ), swapper
+
+
+
+
+@rt('/design-system')
+def get():
+    #album_data = AlbumManager.load_album(path) 
+    #result = [GUICards.file_card(item) for item in album_data['items']]
+    #return Div(*result, Class="w-full h-full flex flex-wrap justify-center")
+    return Div()
 
 serve()
 

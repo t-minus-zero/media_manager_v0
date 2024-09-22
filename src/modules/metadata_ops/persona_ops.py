@@ -5,6 +5,8 @@ import logging
 class PersonaManager:
     def __init__(self, storage_path):
         self.storage_path = storage_path
+        self.album = None
+        self.replacer = None
         self.script_name = 'persona_ops.py'
         self.persona_dir = 'persona'
         self.profile_dir = 'profile'
@@ -15,6 +17,12 @@ class PersonaManager:
         self.stats_json = 'stats.json'
         self.thumbnail = 'thumbnail.jpg'
         self.default_thumbnail_path = 'default_thumbnail.jpg'
+
+    def set_album(self, album):
+        self.album = album
+
+    def set_replacer(self, replacer):
+        self.replacer = replacer
 
     def load_personas_data(self):
         """
