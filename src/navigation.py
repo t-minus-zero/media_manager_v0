@@ -67,5 +67,12 @@ def screensToggle(persona):
             Class="w-8 h-8",
             onclick = togglerJS("accounts")
             ),
+        Div(icon_button("https://cdn-icons-png.flaticon.com/32/10317/10317509.png"),
+            hx_post="/send-for-edit-test",
+            hx_trigger="click",
+            Class="w-8 h-8",
+            ),
         Class="flex flex-col items-center justify-center w-full gap-2" 
     )
+
+

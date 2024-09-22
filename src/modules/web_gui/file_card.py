@@ -32,11 +32,14 @@ class GUICards:
         else: return None
     
     @staticmethod
-    def selection_indicator(selection_number):
+    def selection_indicator(selection_number, item_id=None):
         if selection_number is not None:
             return Div(
                 Input(
                     type="checkbox",
+                    hx_post="/add-selection",
+                    hx_trigger="click",
+                    hx_vals={"item_id": f"{item_id}"},
                     Class=(
                         "h-6 w-6 rounded-full border-2 border-white transition-colors "
                         "checked:bg-lightblue-500 checked:border-lightblue-500 "
@@ -77,13 +80,13 @@ class GUICards:
                 Class="relative h-36 p-1 rounded-md",
                 hx_post="/view-edit",
                 hx_trigger="click",
-                hx_vals={"item_id": f"{item['item_id']}"},
                 hx_target="#view-edit",
-                hx_swap="innerHTML"
+                hx_swap="innerHTML",
+                hx_vals={"item_id": f"{item['item_id']}"},
             ),
             Div(
                     Div(GUICards.flag_indicator(item['flag']), GUICards.status_indicator(latest_version['status']), Class="flex flex-row gap-1"),
-                    Div(GUICards.selection_indicator("1"), Class="flex flex-row"),
+                    Div(GUICards.selection_indicator("1", item['item_id']), Class="flex flex-row"),
                     Class="transition-all duration-100 flex flex-row justify-between w-full"
                 ),
             Id=item_version_id,
@@ -108,9 +111,9 @@ class GUICards:
                 ), 
                 hx_post="/view-edit",
                 hx_trigger="click",
-                hx_vals={"item_id": f"{item['item_id']}"},
                 hx_target="#view-edit",
                 hx_swap="innerHTML",
+                hx_vals={"item_id": f"{item['item_id']}"},
                 Class="relative h-36 p-1 rounded-md",
             ),
             Div(
@@ -121,4 +124,37 @@ class GUICards:
             Id=item_version_id,
             hx_swap_oob="true",
             Class="relative group h-48 w-36 p-2 flex flex-col items-center justify-between rounded-lg bg-zinc-200 hover:bg-zinc-100",
+        )
+    
+    @staticmethod
+    def file_card_previous(item):
+        """Generates a file card for the latest version of an item."""
+        # Access the latest version using the negative index
+        latest_version = item['versions'][-1]
+        image_url = latest_version['url']
+        item_version_id = latest_version['item_version_id']
+        
+        # Return the Div structure as described
+        return Div(
+            Div(
+                Img(
+                    src=image_url, 
+                    Class="h-full w-full object-contain object-center rounded-md", 
+                    alt="Preview"
+                ), 
+                hx_post="/view-edit",
+                hx_trigger="click",
+                hx_target="#view-edit",
+                hx_swap="innerHTML",
+                hx_vals={"item_id": f"{item['item_id']}"},
+                Class="relative h-36 p-1 rounded-md",
+            ),
+            Div(
+                    Div(GUICards.flag_indicator(item['flag']), GUICards.status_indicator(latest_version['status']), Class="flex flex-row gap-1"),
+                    Div(GUICards.selection_indicator("1"), Class="flex flex-row"),
+                    Class="transition-all duration-1 flex flex-row justify-between w-full"
+                ),
+            Id=item_version_id,
+            hx_swap_oob="true",
+            Class="relative group h-48 w-36 p-2 flex flex-col items-center justify-between rounded-lg bg-zinc-0 hover:bg-zinc-100",
         )

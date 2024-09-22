@@ -14,6 +14,9 @@ import logging
 from src.modules.metadata_ops.persona_ops import PersonaManager
 from src.modules.metadata_ops.album_ops import AlbumManager
 from src.modules.web_gui.file_card import GUICards
+from src.modules.web_gui.GUIState import StateManager
+from src.modules.web_gui.edit_view import GUIEditView
+from src.modules.telegram_bot.telegram_test import send_images_from_urls
 
 app, rt = fast_app(
     pico=False,
@@ -29,17 +32,7 @@ path_to_storage = "storage/" # storage is in the root directory
 # Initializations
 logging.basicConfig(level=logging.INFO)
 persona_manager = PersonaManager(path_to_storage)
-
-# Global state
-personas = [] #get_personas(path_to_storage) # load_personas()
-
-# Dashboard state
-prev_album = None # {'path':''} # path to the previous album and it's metadata
-album = None # {'path':''} # path to the current album and it's metadata
-file = None # {versionId: '', 'path':'', 'metadata':''} # path to the current file and it's metadata
-prev_selections = None
-selections = None #[{versionId: '', 'path':'', 'metadata':''}] # list of selected files and their metadata
-
+state_manager = StateManager(path_to_storage)
 
 @rt('/')
 def get():
@@ -76,28 +69,38 @@ def get(path: str):
 @rt('/view-files')
 def post(path: str):
     album_data = AlbumManager.load_album(path) 
-    persona_manager.set_album(album_data)
+    state_manager.set_current_album(album_data)
     result = [GUICards.file_card(item) for item in album_data['items']]
     return Div(*result, Class="w-full h-full flex flex-wrap justify-center")
 
-@rt('/enter-key-test')
-def post(key: str):
-    print(key)
-    return Div(f"Key pressed: {key}", Id="response")
+@rt('/add-selection')
+def post(item_id: str):
+    print(item_id)
+    album_data = state_manager.current_album
+    matching_item = next((item for item in album_data['items'] if item['item_id'] == item_id), None)
+    state_manager.add_to_selected_items(matching_item)
+    print(state_manager.selected_items[0]['item_id'])
+    return Div(f"Key pressed: {item_id}", Id="response")
+
 
 @rt('/view-edit')
 def post(item_id: str):
-    album_data = persona_manager.album
+    album_data = state_manager.current_album
     matching_item = next((item for item in album_data['items'] if item['item_id'] == item_id), None)
-    image_url = matching_item['versions'][-1]['url']
-    swapper = GUICards.file_card_active(matching_item)
-    return  Div(
-                Div(Img(src=image_url, Class="h-full rounded-md", alt="Preview"), Class="flex h-full w-full items-center justify-center"),
-                Class= "h-full w-full p-2 flex items-center justify-center",
-            ), swapper
+    state_manager.set_current_item(matching_item)
+    edit_view_swapper = GUIEditView.edit_view_swapper(matching_item)
+    card_swapper = GUICards.file_card_active(matching_item)
+    previous_card_swapper = GUICards.file_card_previous(state_manager.previous_item)
+    return  edit_view_swapper, card_swapper, previous_card_swapper
 
-
-
+@app.post('/send-for-edit-test')
+async def post():
+    selected_items = state_manager.selected_items
+    print(selected_items)
+    urls = [item['versions'][-1]['url'] for item in selected_items]
+    # Call the asynchronous function and await it
+    await send_images_from_urls(urls)
+    return {"status": "Images sent successfully"}
 
 @rt('/design-system')
 def get():
