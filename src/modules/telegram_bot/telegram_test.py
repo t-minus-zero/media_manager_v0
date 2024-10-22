@@ -3,10 +3,10 @@ import os
 import asyncio
 
 # Replace 'YOUR_BOT_TOKEN' with the token you got from @BotFather
-bot_token = ''
+bot_token = '7744243771:AAGevM9rEXqT0EOwfsU6c6Jn60dkKJVhdcw'
 
 # Replace with the actual chat ID (e.g., your user ID or group chat ID)
-chat_id = ''
+chat_id = '349002992'
 
 # Initialize the bot
 bot = Bot(token=bot_token)

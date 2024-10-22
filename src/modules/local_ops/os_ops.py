@@ -55,6 +55,18 @@ class OSFileManager:
         if not name:
             raise ValueError(f"ERROR: Invalid path: Unable to extract name from '{path}'. FROM [os_ops.py]")
         return name
+
+    @staticmethod
+    def get_just_name_from_xpath(path):
+        if not path:
+            raise ValueError("ERROR: Invalid path: Path cannot be empty. FROM [os_ops.py]")
+        name = os.path.basename(path)
+        if not name:
+            raise ValueError(f"ERROR: Invalid path: Unable to extract name from '{path}'. FROM [os_ops.py]")
+        
+        name_without_extension = os.path.splitext(name)[0]
+        return name_without_extension
+
     
     @staticmethod
     def rename_path(original_path, new_name):

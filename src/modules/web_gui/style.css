@@ -1,0 +1,30 @@
+/* Apply to the entire web app */
+* {
+    scrollbar-width: thin; /* Makes the scrollbar thinner */
+    scrollbar-color: rgba(39, 39, 42, 0.5) transparent; /* Color for Firefox browsers */
+}
+
+/* Custom scrollbar styles for Webkit-based browsers (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+    width: 8px; /* Set the width of the scrollbar */
+    height: 8px; /* Set the height for horizontal scrollbars */
+    background-color: transparent; /* Transparent scrollbar track */
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: rgba(39, 39, 42, 0.5); /* Zinc-700/50 color for the scrollbar thumb */
+    border-radius: 4px; /* Rounded edges for a smoother look */
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent; /* Transparent background for the scrollbar track */
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(39, 39, 42, 0.7); /* Slightly darker when hovering over the scrollbar */
+}
+
+/* Prevent scrollbar from occupying space */
+body {
+    overflow: overlay; /* Allows the content to overlay with the scrollbar instead of taking up width space */
+}

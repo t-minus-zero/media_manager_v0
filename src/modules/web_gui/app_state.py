@@ -2,32 +2,28 @@ from src.modules.local_ops.json_ops import JSONFileManager
 from src.modules.local_ops.os_ops import OSFileManager
 import logging
 
-class StateManager:
+class AppState:
     def __init__(self, storage_path):
-        self.script_name = 'GUIState.py'
+        self.script_name = 'app_State.py'
         self.storage_path = storage_path
-        self.open_tabs = []
-        self.album_paths_list = None
-        self.replacer = None
-        self.current_album = None
-        self.current_album_path = None
-        self.previous_item = None
-        self.current_item = None
-        self.selected_items = []
-        self.personas_data = []
-        self.current_persona_data= []
+        
+        self.open_screens = [] # list of open screens (pages)
+        self.current_page = None # current screen (page)
+        self.open_views = [] # list of open views
+        
+        self.personas_data = [] # list of persona objects
+        self.current_persona_data= [] # persona object
 
-    def set_album_paths_list(self, album_paths_list):
-        self.album_paths_list = album_paths_list
+        self.albums_data = [] # list of album objects
+        self.current_album_data = [] # album object
+        self.current_album_index = 0 # index of current album in albums_data
 
-    def set_current_album(self, current_album):
-        self.current_album = current_album
+        self.selection_mode = False # boolean
+        self.selected_items = [] # list of item objects
 
-    def set_current_album_path(self, current_album_path):
-        self.current_album_path = current_album_path
-    
-    def set_previous_item(self, item):
-        self.previous_item = item
+        self.current_item = None # item object
+        self.previous_item = None # item object
+
     
     def set_current_item(self, current_item):
         #if self.current_item['item_id'] != current_item['item_id']:

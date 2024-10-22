@@ -4,10 +4,10 @@ import logging
 
 class PersonaManager:
     def __init__(self, storage_path):
+        self.script_name = 'persona_ops.py'
         self.storage_path = storage_path
         self.album = None
         self.replacer = None
-        self.script_name = 'persona_ops.py'
         self.persona_dir = 'persona'
         self.profile_dir = 'profile'
         self.albums_dir = 'albums'
@@ -49,6 +49,7 @@ class PersonaManager:
 
             persona_thumbnail = self.fetch_persona_thumbnail(profile_path)
             persona_data['thumbnail'] = persona_thumbnail
+            persona_data['profile_path'] = profile_path
             persona_data['path'] = persona_path
             personas_data.append(persona_data)
 

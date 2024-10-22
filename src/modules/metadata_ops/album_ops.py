@@ -56,7 +56,7 @@ class AlbumManager:
 
     @staticmethod
     def load_album(album_path):
-        """Load the album data from the album_path or create a new album if it doesn't exist."""
+        """Load the album data from the album_path (directory) or create a new album if it doesn't exist."""
         # Check if the album path exists
         if not OSFileManager.check_if_xdirectory_exists(album_path):
             logging.error(f"ERROR: The path {album_path} does not exist. FROM [album_ops.py]")
@@ -69,6 +69,7 @@ class AlbumManager:
             # Load the existing album data
             try:
                 album_data = JSONFileManager.load_json_as_dataobj_from_xpath(album_json_path)
+                album_data['info']['folder_path'] = album_path
                 logging.info(f"SUCCESS: Album data loaded from '{album_json_path}'. FROM [album_ops.py]")
             except Exception as e:
                 logging.error(f"ERROR: An error occurred while loading the album data: {e}. FROM [album_ops.py]")
@@ -82,6 +83,7 @@ class AlbumManager:
             try:
                 JSONFileManager.save_xdataobj_as_xname_json_at_xpath(album_data, 'album', album_path)
                 logging.info(f"SUCCESS: New album data saved as '{album_json}' in {album_path}. FROM [album_ops.py]")
+                album_data['info']['folder_path'] = album_path
             except Exception as e:
                 logging.error(f"ERROR: An error occurred while saving the new album data: {e}. FROM [album_ops.py]")
                 return None
@@ -139,3 +141,46 @@ class AlbumManager:
         """Placeholder for updating the album with new items."""
         # Logic for updating album items, like checking for new media files and renaming
         return current_album
+    
+    @staticmethod
+    def update_item(current_item, current_album, album_path):
+        """Placeholder for updating the item with new versions."""
+        album_json_path = OSFileManager.find_path_of_xfile_in_xdirectory(album_json, album_path)
+        for index, item in enumerate(current_album['items']):
+            if item['item_id'] == current_item['item_id']:
+                current_album['items'][index] = current_item
+                break
+        JSONFileManager.save_xdataobj_as_xname_json_at_xpath(current_album, 'album', album_path)
+
+        return current_album
+    
+    @staticmethod
+    def get_album_previews(album_data):
+        """Get the preview images for the album."""
+        preview_images = []
+        
+        # Check if album_data is None or doesn't have 'items'
+        if not album_data or 'items' not in album_data or not album_data['items']:
+            return preview_images
+        
+        # Determine the positions to select the items
+        items_number = len(album_data['items'])
+        
+        indices = [
+            0,  # First item
+            abs(items_number // 3),  # Item at position ABS(ItemsNumber / 3)
+            abs(items_number - items_number // 3),  # Item at position ABS(ItemsNumber - ItemsNumber / 3)
+            items_number - 1  # Last item
+        ]
+        
+        # Ensure unique indices and keep them within the range
+        indices = sorted(set(min(items_number - 1, max(0, idx)) for idx in indices))
+        
+        # Select the preview images based on the calculated indices
+        for idx in indices:
+            item = album_data['items'][idx]
+            if item['versions']:
+                latest_version = item['versions'][-1]
+                preview_images.append(latest_version['url'])
+        
+        return preview_images
