@@ -3,15 +3,16 @@ import logging
 from src.modules.local_ops.os_ops import OSFileManager
 from src.modules.local_ops.json_ops import JSONFileManager
 from src.modules.utility_ops.utility_ops import UtilityOps
+import uuid
 
-album_json = 'album.json'
+album_json = 'album'
 
 class AlbumManager:
 
     @staticmethod
     def create_info():
         now = datetime.datetime.now()
-        album_id = 'ID' + now.strftime('%y%m%d%H%M%S')  # 'ID' + last 2 digits of year + month + day + hour + minutes + seconds
+        album_id = f"ID-{uuid.uuid4().hex[:6]}"  # 'ID' + last 2 digits of year + month + day + hour + minutes + seconds
         return {
             "version": 1,
             "album_id": album_id
@@ -27,7 +28,7 @@ class AlbumManager:
         return {
             "item_version_id": item_version_id,
             "version_number": version_number,
-            "name": None,
+            "name": item_version_id,
             "url": None,  # relative to storage
             "file_type": None,
             "extension": None,
@@ -63,13 +64,13 @@ class AlbumManager:
             return None
 
         # Check if the album.json file exists
-        album_json_path = OSFileManager.find_path_of_xfile_in_xdirectory(album_json, album_path)
+        album_json_path = OSFileManager.find_path_of_xfile_in_xdirectory(f"{album_json}.json", album_path)
         
         if album_json_path:
             # Load the existing album data
             try:
                 album_data = JSONFileManager.load_json_as_dataobj_from_xpath(album_json_path)
-                album_data['info']['folder_path'] = album_path
+                album_data['info']['url'] = album_path
                 logging.info(f"SUCCESS: Album data loaded from '{album_json_path}'. FROM [album_ops.py]")
             except Exception as e:
                 logging.error(f"ERROR: An error occurred while loading the album data: {e}. FROM [album_ops.py]")
@@ -83,7 +84,7 @@ class AlbumManager:
             try:
                 JSONFileManager.save_xdataobj_as_xname_json_at_xpath(album_data, 'album', album_path)
                 logging.info(f"SUCCESS: New album data saved as '{album_json}' in {album_path}. FROM [album_ops.py]")
-                album_data['info']['folder_path'] = album_path
+                album_data['info']['url'] = album_path
             except Exception as e:
                 logging.error(f"ERROR: An error occurred while saving the new album data: {e}. FROM [album_ops.py]")
                 return None
@@ -112,7 +113,7 @@ class AlbumManager:
             # Create a new item and update its information
             new_item = AlbumManager.create_item(new_album_data['info']['album_id'], len(new_album_data['items']) + 1)
             new_file_name = new_item['versions'][0]['item_version_id']
-            new_file_path = OSFileManager.rename_path(file_path, new_file_name)
+            new_file_path = OSFileManager.rename_path(file_path, new_file_name, extension)
 
             # Update item version details
             new_item['versions'][0]['name'] = new_file_name

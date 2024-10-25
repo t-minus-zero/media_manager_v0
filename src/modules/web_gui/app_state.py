@@ -6,6 +6,9 @@ class AppState:
     def __init__(self, storage_path):
         self.script_name = 'app_State.py'
         self.storage_path = storage_path
+
+        self.kitt = None
+        self.k_status = False
         
         self.open_screens = [] # list of open screens (pages)
         self.current_page = None # current screen (page)
@@ -23,6 +26,8 @@ class AppState:
 
         self.current_item = None # item object
         self.previous_item = None # item object
+
+        self.queue_payloads = []
 
     
     def set_current_item(self, current_item):

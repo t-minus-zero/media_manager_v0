@@ -1,5 +1,6 @@
 from fasthtml.fastapp import *
 from fasthtml.common import *
+from src.modules.web_gui.key_event_js import key_event_js
 
 class Structure:
 
@@ -14,18 +15,7 @@ class Structure:
                 }
         """
         return close_bottom_sheet
-    
-    key_event_js = """
-        document.addEventListener('keydown', function(event) {
-            const key = event.key; // Get the key pressed
 
-            // Set the key value dynamically in the hx-vals attribute
-            document.getElementById('dynamic-element').setAttribute('hx-vals', JSON.stringify({ key: key }));
-
-            // Trigger the custom HTMX event
-            htmx.trigger(document.getElementById('dynamic-element'), 'customTrigger');
-        });
-        """
 
     def app_container(screens):
 
@@ -40,9 +30,11 @@ class Structure:
                 ),
                 Div('Dynamic Element', Id="dynamic-element", hx_post="/key-pressed", hx_trigger="customTrigger", hx_swap="innerHTML", Class="w-0 h-0", Style="display: none"),
                 Script(Structure.close_bottom_sheet()),
-                Script(Structure.key_event_js),
+                Script(key_event_js()),
                 Class= app_container_classes,
-                Id="app-container"
+                Id="app-container",
+                hx_ext='ws', 
+                ws_connect='/ws'
         )
     
     def floating_screen(screen_id, screen_content):

@@ -1,5 +1,6 @@
 import os
 import logging
+import shutil
 
 class OSFileManager:
     
@@ -69,14 +70,17 @@ class OSFileManager:
 
     
     @staticmethod
-    def rename_path(original_path, new_name):
+    def rename_path(original_path, new_name, extension=None):
         if not os.path.exists(original_path):
             logging.error(f"ERROR: The path '{original_path}' does not exist.")
             raise FileNotFoundError(f"The path '{original_path}' does not exist.")
         # Determine if the original path is a file or a directory
         if os.path.isfile(original_path):
             # For files, preserve the original extension
-            file_extension = os.path.splitext(original_path)[1]  # Get the file extension
+            if extension:
+                 file_extension = f".{extension}" if not extension.startswith('.') else extension
+            else:
+                file_extension = os.path.splitext(original_path)[1]  # Get the file extension
             new_name_with_extension = f"{new_name}{file_extension}"
         else:
             # For directories, just use the new name
@@ -91,6 +95,27 @@ class OSFileManager:
         except Exception as e:
             logging.error(f"ERROR: Failed to rename '{original_path}'. {e}")
             raise OSError(f"Failed to rename '{original_path}': {e}")
+
+
+    @staticmethod
+    def copy_xfile_with_new_xname(original_path, new_name):
+        if not os.path.isfile(original_path):
+            raise FileNotFoundError(f"ERROR: The file '{original_path}' does not exist.")
+        # Extract the file extension
+        file_extension = os.path.splitext(original_path)[1]
+        # Construct the new file name with the same extension
+        new_file_name = f"{new_name}{file_extension}"
+        # Define the full path for the new file
+        destination_path = os.path.join(os.path.dirname(original_path), new_file_name)
+        # Copy the original file to the new path
+        try:
+            shutil.copy2(original_path, destination_path)
+            logging.info(f"SUCCESS: Copied '{original_path}' to '{destination_path}'.")
+            return destination_path
+        except Exception as e:
+            logging.error(f"ERROR: Failed to copy '{original_path}' to '{destination_path}'. {e}")
+            raise OSError(f"Failed to copy '{original_path}' to '{destination_path}': {e}")
+
 
 """
 
