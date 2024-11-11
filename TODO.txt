@@ -1,27 +1,28 @@
+Info:
+storage/procedures/android/ *all android procedures here
+procedures naming convention -> appname_procedure_name.json
 
 
+TO DO NOW:
+[]  add reload procedures in /procedures to test them out without restarting the whole thing
+[]  make the request and response to the server be non-blocking
+[]  add a way to catch the response from the server
+
+[]  Create intermediary procedures for example to open-close soda or other apps and implement checks if it works.
+
+[]  Whenever one of the buttons or thing in the current procedure can't be found, start the soda troubleshooting procedure:
+    this will go trough different checks to understand what could be the issue and solve it, for example, if there is a 
+    adv or if the pro functions is not avalable, or if internet is down etc.
+
+[] Adjust the returning, saving and updating of the ui in the gui
+[] Add saving of the queues and reloading
 
 
-[x] Create a reusable TopBar
-[x] Return certain elements only if the page it relates to is open by checking in State.open_views
-[x] Move the key-stroke triggers from python to js so that the request can be personalize.
-[x] Create single buttons with action inside Navigation
-[x] Create behaviours for each action
-
-
-[x] Adjust the reinitialization of the album when it should Not - probably an issue with album.json.json naming
-[] Add a subprocess way and automatically trigger update to ui when it ends (send alert)
-[] Add a queue process that keeps going and checking if there is a payload in the queue
-if there is, it starts the processing on it
-after finishing the processing it has to automatically send an update to the front-end if active.
-
-
+TO DO LATER:
+[] Implement logger utility in fastHTML server
+[] have Kitt spin-up the android-server using a subprocess command / not-needed
+[]  get realtime updates of the current procedure in the test ui  
 [] Buy soda to remove the ads
-[] Refine instructions of editing torugh actions, add proper actions for kiara process using the saved presets
-[] add procedure buttons in the options class for now
-
-[] Create a queue metadata component with modular procedures 
-    - Each queue component has it's pwn folder with it's own metadata (like albums) files are copied here before being edited
-
 [] Create Schedule metadata and component
-    
+[]  Check and group together procedures that are the same in a row in a single job.
+Send the instructions list alone and not have the server load the procedures.

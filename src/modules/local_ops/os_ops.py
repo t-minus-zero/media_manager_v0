@@ -68,6 +68,14 @@ class OSFileManager:
         name_without_extension = os.path.splitext(name)[0]
         return name_without_extension
 
+    @staticmethod
+    def get_folder_path_from_xpath(file_path):
+        if not file_path:
+            raise ValueError("ERROR: Invalid path: Path cannot be empty. FROM [os_ops.py]")
+        directory_path = os.path.dirname(file_path)
+        if not directory_path:
+            raise ValueError(f"ERROR: Invalid path: Unable to extract directory from '{file_path}'. FROM [os_ops.py]")
+        return directory_path
     
     @staticmethod
     def rename_path(original_path, new_name, extension=None):
@@ -115,6 +123,17 @@ class OSFileManager:
         except Exception as e:
             logging.error(f"ERROR: Failed to copy '{original_path}' to '{destination_path}'. {e}")
             raise OSError(f"Failed to copy '{original_path}' to '{destination_path}': {e}")
+
+    @staticmethod
+    def delete_xfile(file_path):
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"ERROR: The file '{file_path}' does not exist.")
+        try:
+            os.remove(file_path)
+            logging.info(f"SUCCESS: Deleted file '{file_path}'.")
+        except Exception as e:
+            logging.error(f"ERROR: Failed to delete file '{file_path}'. {e}")
+            raise OSError(f"Failed to delete file '{file_path}': {e}")
 
 
 """

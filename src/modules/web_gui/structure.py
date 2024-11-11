@@ -60,16 +60,16 @@ class Structure:
 
         bottom_sheet_classes = "w-full max-h-[80%] bottom-0 transition-all fixed z-30 grid max-w-96"
         bottom_sheet_classes += " translate-y-0" if sheet_open else " translate-y-full"
+        close_button = Button( 
+            "Done",
+            Class="w-full h-12 bg-zinc-700 text-blue-500",
+            onclick=f"closeBottomSheet('{sheet_id}')"
+        )
     
         return Div(
             Div(
-                    Button(
-                        "Done",
-                        Class="w-full h-12 bg-zinc-700 text-blue-500",
-                        onclick=f"closeBottomSheet('{sheet_id}')"
-                    ),
-                    *sheet_content,
-                    Class = "w-full h-full flex flex-col items-start justify-center overflow-y-scroll overflow-x-hidden relative"
+                *sheet_content,
+                Class = "w-full h-full flex flex-col items-start justify-center overflow-y-scroll overflow-x-hidden relative"
             ),
             Class= bottom_sheet_classes,
             Id= sheet_id
@@ -105,4 +105,33 @@ class Structure:
         return Div(
             navigation_content,
             Class="fixed bottom-2 z-20"
+        )
+    
+
+    def tabs_navigation(tabs):
+
+        example_tab_data = {
+            "name": "example",
+            "post": "/example-post",
+            "target": "#example-target",
+            "trigger": "click",
+            "vals": {"example": "example"}
+        }
+
+        tabs_buttons = []
+
+        for tab in tabs:
+            tab_button = Button(
+                P(tab['name'], Class="text-xs"),
+                Class="p-2 flex items-center justify-center text-zinc-300 hover:text-zinc-100 rounded-md cursor-pointer",
+                hx_post= tab['post'],
+                hx_target= tab['target'],
+                hx_trigger= "click",
+                hx_vals={tab["vals-key"] : tab['vals-value']}
+            )
+            tabs_buttons.append(tab_button)
+
+        return Div(
+            *tabs_buttons,
+            Class="w-full flex flex-row items-center justify-center gap-2 p-2 bg-zinc-700 rounded-md"
         )

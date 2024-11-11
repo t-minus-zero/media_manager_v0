@@ -73,32 +73,31 @@ class Item:
         checkbox_data = {
             "selection_mode" : State.selection_mode,
             "is_selected" : False,
-            "is_current" : True if item_data == State.current_item else False,
+            "is_current" : False,
             "versions" : [item_data['versions'][-1]] if item_data else [],
             "index" : "",
         }
 
-        if item_data in State.selected_items:
-            checkbox_data['is_selected'] = True
-            checkbox_data['index'] = State.selected_items.index(item_data) + 1 
-
         is_focus = False 
-        if State.current_item:
-            if State.current_item['item_id'] == item_data['item_id']:
+        target = "none"	
+        if State.current_item['item-data'] and item_data:
+            if item_data['item_id'] == State.current_item['item-data']['item_id']:
+                checkbox_data['is_current'] = True
                 is_focus = True 
+            target = f"#item_{item_data['item_id']}"
 
+        if any(item_data['item_id'] == item['item-data'].get('item_id') for item in State.selected_items):
+            checkbox_data['is_selected'] = True
+            checkbox_data['index'] = State.find_first_index_by_item_id_in_selected(item_data['item_id']) + 1
+        
         swap_oob = "true" if is_focus else "false"
 
         card_classes = "group relative w-full max-w-[400px] min-w-[200px] aspect-square flex flex-col items-center justify-center border border-zinc-800 hover:bg-zinc-800"
         if is_focus: 
             card_classes += " border border-blue-500"
 
-        target = f"#item_{item_data['item_id']}"
-
-
         image_classes = "w-full h-full object-contain" if item_data['versions'][-1]['status'] == "queued" else "w-full h-full object-contain"
         
-       
         image_src = item_data['versions'][-1]['url'].replace('\\', '/') if item_data['versions'][-1]['url'] else "https://via.placeholder.com/150"
 
         return Div(
@@ -128,8 +127,6 @@ class Item:
     def grid(State):
 
         item_cards = [Item.card(item_data, State) for item_data in State.current_album_data['items']]
-
-        
 
         return Div(
             *item_cards,

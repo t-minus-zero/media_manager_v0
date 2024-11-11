@@ -19,10 +19,6 @@ class AlbumManager:
         }
 
     @staticmethod
-    def create_edit():
-        return {}
-
-    @staticmethod
     def create_version(item_id, version_number):
         item_version_id = f"{item_id}_V{version_number}"
         return {
@@ -34,7 +30,7 @@ class AlbumManager:
             "extension": None,
             "status": 'edit', # edit, ready
             "group": None,
-            "edits": [AlbumManager.create_edit()]  # Includes one empty edit object
+            "edits": []  # edit objects list
         }
 
     @staticmethod

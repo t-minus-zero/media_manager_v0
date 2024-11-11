@@ -1,107 +1,55 @@
-
-Add Scripts as elements inside a parent element without script tags
-Can be called doing this in the elements: onclick=f"closeBottomSheet('{sheet_id}')"
-
-
-
-Each component that changes should have it's constructor receive the state it needs.
-
-Have a behaviour script for each action.
-    Each action has additional changes depending on if a page is open or not,
-    unless if htmx does not do anything if the id of the content that needs to change is not there
-    if this is the case, then it can just do everything both on smal land large screens the same.
-
-
-
-Main Screen
-    N Floating Screens
-        Bottom Sheets
-
-Flaoting Screen: 
-    Animates from a width of 0 from the right or left
-    Relative on larger screens inside the Main Screen
-    Absolute on small screens inside the Main Screen
-Bottom Sheets: Open full width from the bottom.
-
-Main Screen
-    Floating Scren Left
-        Schedule
-        Queue
-    Floating Screen Center
-        Persona
-        Albums
-    Floating Screen Right
-        Current Selections preview
-        Image preview and edit
-        
-
-
-Actions:
-    Persona Switcher
-        -> Opens the Bottom-Sheet 
-            -> Top-Bar - Fixed
-                Section: P: Name of the Menu
-                Section of Buttons: (Done)
-            -> List of Persona Buttons 
-                Icon fo the persona
-                Alias of Persona
-    Scheduler
-        -> Opens a Floating Screen
-
-
-Screens:
-    Persona
-        Scrollable Container
-            Top-Bar - Fixed
-                Section: Button: Alias of Persona - Vertical Chevrons icon 
-                    -> Persona Switcher
-                Section: Buttons: (Settings)   
-            Info and Stats about the current persona
-            Nav-Tab: State(Persona)
-                Button: Switch Persona
-                    -> Persona Switcher
-                Button: Schedule
-                    -> Scheduler 
-    Albums
-        Scrollable Container 
-            Top-Bar - Fixed
-                Button: Alias of the persona / Name of the album
-                Buttons section (Options)
-            Items-Grid
-                List of all the Albums / List of all the Items
-        Nav Tab: 
-            Back button if inside an album
-            Pages Nav
-                Switch between profile and labums
-                Queue button opens the queue in a Floating Screen 
-            Selections Button
-                Opens the current selections into a Floating Screen
-            Filter Button
-                Opens a Bottom Sheet to change the filters and order
-
-
-
-Small Screen:
-
-Main Screen: 
-    Switch between -> Persona - Albums
-    Has Navigatio Tab -> Switching pages & Page Specific Options & back button
-
-Bottom-Sheet: 
-    Options selection
-
-Floating-Screen:
-    Schedule
-    Editing Page
-    Queue
-    Options
-
-
-
-Selected Items array
+State.selected_items
 [
     {
-        item_id: item_id
-        version: {version object}
+        item-data: item,
+        version-index: 3,
     }
 ]
+
+
+Payload
+{
+    'info': {
+        'payload-id' : 
+        'status' : 'queued' / 'processing' / 'aborted' / 'completed',
+        'job-index' : *index of job being processed,
+        'job-count' : *index of total number of jobs,
+        'log' : [] # array of strings with each console print of the process
+    }
+    'jobs' : [
+        {
+            'item-data': '*item object' update the item and get the *url of the duplicate of the OG
+            'version-index' : '4' *version index of the duplicate of the OG
+            'status' : 'queued' / 'processing' / 'aborted' / 'completed' / 'partial',
+            #in case the url can't be found, the version url contains the album id, item id and version id 
+            'edits' : [
+                    {
+                        'name' : 'soda-test-edit',
+                        'requirement' : [android-phone, android-soda-app],
+                        'status' : 'queued' / 'processing' / 'aborted' / 'completed',
+                        'settings' : {
+                            'percentage' : '50',
+                        }
+                    },
+                ]
+        }
+    ]
+}
+
+
+Edits that need to be performed are stored directly in the item version object
+when applying edits to all selected_items or all the items in the album, just adds the edit ot the list of procedures in each item.
+
+
+Versions [
+    {
+        edits: [{
+            
+        }]
+    }
+]
+
+
+don't show info about specific item/version in the queue, show it in the view of the item itself.
+In the item card show if the item is being processed etc.
+

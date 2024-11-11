@@ -1,0 +1,39 @@
+{
+    "edits_menu": {
+        "left": [
+                {
+                    "type": "button",
+                    "icon": "left-chevron",
+                    "label" : "",
+                    "post" : "/edits",
+                    "target" : "edits-page",
+                    "trigger" : "click",
+                    "swap" : "outerHTML",
+                    "vals" : {
+                        "title": "Back"
+                    }
+                }
+            ],
+        "center": [
+            {
+                "type": "text",
+                "label": "$version_id"
+            }
+        ],
+        "right": [
+            {
+                "type": "button",
+                "icon": "x",
+                "label" : "",
+                "post" : "/toggle_sheet",
+                "target" : "$sheet_id",
+                "trigger" : "click",
+                "swap" : "outerHTML",
+                "vals" : {
+                    "sheet_id" : "$sheet_id",
+                    "sheet_open": false
+                }
+            }
+        ]
+    }
+}

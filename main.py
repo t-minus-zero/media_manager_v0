@@ -1,35 +1,22 @@
 from fasthtml.fastapp import *
 from fasthtml.common import *
-from typing import Any
+from fastapi.responses import FileResponse, Response
 from datetime import datetime
-from src.navigation import navigation, screensToggle
-from src.file_viewer import file_viewer
 from src.modules.ffmpeg_processing.heic_to_jpg import convert_heic_to_jpg
 from os.path import dirname, join
-from src.functions.os_operations import  get_personas, create_new_folder, load_json_from_directory
-from src.components.ui_design_system import pageContainer, icon_button, profile
-from src.components.persona_card import persona_card
-from src.components.file_card import file_card
 import os
 import logging
 import asyncio
+import requests
 from src.modules.metadata_ops.persona_ops import PersonaManager
 from src.modules.metadata_ops.album_ops import AlbumManager
-from src.modules.web_gui.file_card import GUICards
 from src.modules.web_gui.app_state import AppState
-from src.modules.web_gui.edit_view import GUIEditView
 from src.modules.telegram_bot.telegram_test import send_images_from_urls
-from src.modules.android.appium_ops import Appium
-from src.modules.android.android_ops import AndroidOps
-from src.modules.local_ops.json_ops import JSONFileManager
-from src.modules.android.adb_ops import ADBImageManager
-from src.modules.local_ops.os_ops import OSFileManager
-from src.modules.utility_ops.utility_ops import UtilityOps
 from src.modules.web_gui.behaviours import Behaviours
-from src.modules.web_gui.options import Options
 from src.modules.automation.kitt import KITT
+from src.modules.web_gui.queue import Queue
+from starlette.websockets import WebSocketDisconnect
 
-from fastapi.responses import FileResponse
 
 app = FastHTML(
     pico=False,
@@ -57,20 +44,37 @@ async def serve_static(file_path: str):
     # IDK how this works but it fixes the issue with files not loading in the gui
     full_path = os.path.join("storage", file_path)
     if os.path.exists(full_path):
-        return FileResponse(full_path)
+        # Set cache control headers to prevent caching
+        headers = {
+            "Cache-Control": "no-store, must-revalidate", 
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+        return FileResponse(full_path, headers=headers)
     else:
-        return {"error": "File not found"}
+        return Response(content="File not found", status_code=404)
     
 
 async def on_connect(send):
     await asyncio.sleep(2)  # 2-second delay before initial message
     print("Connection established, sending initial message")
-    await send(Script("alert('WebSocket connected on client');")),
     while True:
-        current_time = datetime.now().strftime("%M:%S")
-        print(f"Sending current time: {current_time}")
-        await send(P(f"Current time: {current_time}", Class="text-zinc-100 text-xs", Id="queue_status"),)
-        await asyncio.sleep(10)  # Send every 3 seconds
+        print("Checking for queue updates")
+        updated = Behaviours.update_queue(State)
+        if updated: #check if the android server is running
+            Behaviours.start_payload(State)
+        
+        if 'queue' in State.open_screens:
+            print("Sending updated queue page")
+            updated_queue_page = Queue.view(State)
+            try:
+                await send(updated_queue_page)
+            except Exception:
+                print("WebSocket disconnected.")
+                break  # Exit loop if disconnected
+        
+        await asyncio.sleep(15)  # Adjust delay as needed
+
 
 @rt('/')
 def get():
@@ -136,18 +140,20 @@ def post(album_id: str):
 @rt ('/open-item-in-edit')
 def post(item_id: str):
     selected_item = next((item for item in State.current_album_data['items'] if item['item_id'] == item_id), None)
-    if State.current_item and State.current_item['item_id'] != selected_item['item_id']:
-        State.previous_item = State.current_item
-    State.current_item = selected_item
+    State.set_current_item(selected_item)
     return Behaviours.open_item_in_edit(State)
 
-@rt('/toggle_edit_options')
-def post(sheet_id: str):
-    return Behaviours.toggle_edit_options(State, sheet_id, is_open=True)
+@rt('/toggle_edit_tabs')
+def post(tab: str):
+    return Behaviours.toggle_edit_tabs(State, tab)
 
 @rt('/key-arrow-left-right')
 def post(key: str):
     return Behaviours.key_arrow_left_right(key, State)
+
+@rt('/key-arrow-up-down')
+def post(key: str):
+    return Behaviours.key_arrow_up_down(key, State)
 
 @rt('/change-flag')
 def post(item_id: str, flag: str):
@@ -164,21 +170,66 @@ def post(key: str):
     if key in ['v', 'b', 'n', 'm']:
         if State.current_item:
             flag = {"v": "unflagged", "b": "yes", "n": "no", "m": "maybe"}.get(key, "unflagged")
-            item_id = State.current_item['item_id']
+            item_id = State.current_item['item-data']['item_id']
             return Behaviours.change_flag(item_id, State, flag)
         
     if key in ['s']:
         if State.current_item:
             State.selection_mode = True
-            item_id = State.current_item['item_id']
+            item_id = State.current_item['item-data']['item_id']
             return Behaviours.add_remove_selected_item(item_id, State)
 
     return Div("key pressed: " + key, Id="response")
 
 
-# Routes for testing - some need to be deleted
+#------------------- Edit Options Routes -------------------
 
-@app.post('/send-for-edit-test')
+@rt('/toggle_edit_options')
+def post(sheet_id: str):
+    State.procedures = Behaviours.load_procedures(State)
+    return Behaviours.toggle_edit_options(State, sheet_id, is_open=True)
+
+@rt('/edits-list')
+def post():
+    return Behaviours.edits_list(State)
+
+@rt('/edit-details')
+def post(edit_name: str):
+    return Behaviours.edit_details(State, edit_name)
+
+@rt('/procedures-list')
+def post():
+    State.procedures = Behaviours.load_procedures(State)
+    return Behaviours.procedures_list(State)
+
+@rt('/procedure-details')
+def post(procedure_name: str):
+    return Behaviours.procedure_details(State, procedure_name)
+
+@rt('/add-edit')
+def post(edit_name: str, edit_value: str, target: str):
+    if target == 'current':
+        Behaviours.add_edit_to_current(State, edit_name, edit_value)
+        return Behaviours.procedures_list(State)
+    elif target == 'selected':
+        item_id = State.selected_items[0]['item_id']
+        version_index = State.selected_items[0]['version_index']
+    else:
+        return P("Invalid target", Id="response")
+
+@rt('/send-to-queue')
+def post(target: str):
+    edit_screen, item_cards = Behaviours.send_to_queue(State, target)
+    return edit_screen, *item_cards,
+
+
+#------------------- Routes for testing - Some need to be deleted -------------------
+
+@app.post('/test-procedures') # This is to test procedures with android server
+async def get():
+    return Div()
+
+@app.post('/send-for-edit-test') # This is a telegram test route
 async def post():
     selected_items = State.selected_items
     print(selected_items)
@@ -196,19 +247,29 @@ async def post():
     print("KITT Initialized")
     return P("KITT is alive", Class="text-zinc-100 text-xs", Id="adb_status")
 
-@rt('/start_automation')
-async def post(edit: str):
-    print("Starting Automation")
-    button, result, edit_screen = await Behaviours.send_to_queue(State)
-    return button, *result, edit_screen
+@rt('/run-procedure')
+def post(procedure_name: str):
+    procedure = next((p for p in State.procedures if p['info']['name'] == procedure_name), None)
+    url = "http://127.0.0.1:8000/process-image"
+    payload = {
+        "image_path": "image_path",
+        "data_object": procedure
+    }
+    # Send the request to the FastAPI server
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()  # Raise an exception if the request was unsuccessful
+        print("Server response:", response.json())
+    except requests.exceptions.RequestException as e:
+        print("Error communicating with the server:", e)
+        return Behaviours.update_procedures_view(State, app_name='procedures')
+
+#------------------- Debugging routes -------------------
+@rt('/state')
+def get():
+    return Behaviours.view_state(State)
 
 serve()
-
-
-@rt('/create-folder')
-def get(path: str):
-    result = create_new_folder(path)
-    return result
 
 @rt('/convert-heic-to-jpg')
 def get(path: str):

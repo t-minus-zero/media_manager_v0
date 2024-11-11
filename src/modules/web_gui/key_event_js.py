@@ -16,6 +16,17 @@ document.addEventListener('keydown', function(event) {
                 swap: 'beforeend'
             }
         );
+    } else if (key === "ArrowUp" || key === "ArrowDown") {
+        // Handle ArrowUp and ArrowDown keys
+        htmx.ajax(
+            'POST',
+            '/key-arrow-up-down',
+            {
+                values: { key: key },
+                target: '#edit_view',
+                swap: 'outerHTML'
+            }
+        );
     } else {
         // Handle all other keys by setting hx-vals and triggering a custom HTMX event
         const dynamicElement = document.getElementById('dynamic-element');

@@ -2,6 +2,7 @@ from fasthtml.fastapp import *
 from fasthtml.common import *
 from src.modules.web_gui.item import Item
 from src.modules.web_gui.icon_view import IconView
+from time import time
 
 class Edit:
 
@@ -38,14 +39,16 @@ class Edit:
     @staticmethod
     def menu(State):
         
-        versions_count = len(State.current_item['versions'])
-        flag_icon = Item.card_flag(State.current_item['item_id'], State)
+        versions_count = len(State.current_item['item-data']['versions'])
+        current_version = State.current_item['item-data']['versions'][State.current_item['version-index']]['version_number']
+        flag_icon = Item.card_flag(State.current_item['item-data']['item_id'], State)
 
         return Div(
             Edit.close_button(),
             Div(
-                f"{versions_count}", 
-                Class="text-white text-xs w-6 h-6 border border-zinc-100 rounded-md flex items-center justify-center font-semibold text-md"
+                f"{current_version}/{versions_count}", 
+                Class="text-white text-xs w-6 h-6 border border-zinc-100 rounded-md flex items-center justify-center font-semibold text-md",
+                Id = "version-index"
             ),
             flag_icon,
             Edit.options(), 
@@ -54,20 +57,60 @@ class Edit:
     
 
     @staticmethod
+    def preview(item_data, version):
+        
+        img_class = "w-full h-full object-contain"
+        if item_data['versions'][version]['status'] == "queued":
+            img_class = "w-full h-full object-contain opacity-66"
+        img_url = item_data['versions'][version]['url'].replace("\\", "/")
+        img_url += f"?v={int(time())}" # Add a timestamp to the image URL to prevent caching andforcing reload
+        print("Image URL of version:", img_url)
+        if not img_url:
+            img_url = "https://via.placeholder.com/150" 
+        return Div(
+                Img(src=img_url , Class=img_class),
+                Class="w-full h-full relative",
+                Id = "edit_preview"
+            )
+
+
+    @staticmethod
     def view(State):
 
-        item_data = State.current_item
+        item_data = State.current_item['item-data']
         menu = [Edit.menu(State)]
 
         return Div(
-            Div(
-                Img(src=item_data['versions'][-1]['url'] , Class="w-full h-full object-contain"),
-                Class="w-full h-full relative"
-            ),
+            Edit.preview(State.current_item['item-data'] , State.current_item['version-index']),
             Div(
                 *menu,
                 Class= "absolute right-2 z-30"
             ),
             Class="relative w-full h-full flex flex-col items-center justify-center overflow-hidden",
             Id="edit_view"
+        )
+    
+
+    @staticmethod
+    def info(State):
+        item_data = State.current_item['item-data']
+        version = State.current_item['version-index']
+        
+        current_edits = []
+        for edit in item_data['versions'][version]['edits']:
+            current_edits.append(
+                Div(
+                    Div(
+                        P(f"{edit['name']}", Class="text-zinc-100 text-xs"),
+                        P(f"{edit['status']}", Class="text-zinc-100 text-xs"),
+                        Class="w-full flex flex-row items-center justify-between gap-2 p-2"
+                    ),
+                    Class="w-full flex flex-col items-center justify-start gap-2"
+                )
+            )
+
+        return Div(
+            *current_edits,
+            Class="w-full flex flex-col items-center justify-start gap-2",
+            Id="edit_info"
         )

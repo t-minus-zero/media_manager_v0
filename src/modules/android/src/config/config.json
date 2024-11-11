@@ -1,0 +1,29 @@
+{
+    "appium" : {
+      "appium_path": "appium.cmd",
+      "cors_enabled": true,
+      "max_startup_wait_seconds": 10
+    },
+    "adb": {
+      "adb_path": "adb",
+      "local_folder": "./images"
+    },
+    "device":
+      {
+        "device_name": "S22",
+        "device_id": "R5CT227HXLW",
+        "port": 4723,
+        "platform_name": "Android",
+        "platform_version": "14",
+        "automation_name": "UiAutomator2",
+        "auto_grant_permissions": true
+      },
+    "apps": [
+        {
+          "name": "soda",
+          "package_name": "com.snowcorp.soda.android",
+          "activity_name": "com.linecorp.sodacam.android.camera.CameraActivity"
+        }
+      ]
+  }
+  
