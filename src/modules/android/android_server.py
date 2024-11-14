@@ -1,6 +1,9 @@
 import asyncio
 import json
 import os
+import time
+import ctypes
+from ctypes import wintypes
 from fastapi import FastAPI, HTTPException, Request
 from typing import Dict, Any
 from src.android_phone import PhoneOps
@@ -86,7 +89,10 @@ async def process_payload(request: Request):
             file_name = os.path.splitext(file_name_with_extension)[0]
             print("File name:", file_name)
 
+
+
             # Interact with the phone based on image_url (assuming phone object is defined)
+            await set_file_creation_time_to_today(image_url)
             await phone.send_data_to_device(image_url)
 
             # Process edits for each job
@@ -133,6 +139,35 @@ async def process_payload(request: Request):
         print("Error in process_payload:", e)
         return {"status": "error", "result": payload}
 
+
+
+
+async def set_file_creation_time_to_today(file_path):
+    """
+    Sets the creation, modification, and access times of the specified file to the current time (Windows only).
+    Parameters:
+    - file_path: Path to the file whose date you want to change.
+    """
+    # Get the current time in FILETIME format
+    current_time = int((time.time() + 11644473600) * 10000000)
+    filetime = ctypes.wintypes.FILETIME(current_time & 0xFFFFFFFF, current_time >> 32)
+
+    # Open the file handle
+    FILE_WRITE_ATTRIBUTES = 0x0100
+    handle = ctypes.windll.kernel32.CreateFileW(
+        file_path, FILE_WRITE_ATTRIBUTES, 0, None, 3, 0x02000000, None
+    )
+
+    if handle == ctypes.wintypes.HANDLE(-1).value:
+        raise ctypes.WinError()
+
+    # Set the creation, access, and modification times
+    try:
+        ctypes.windll.kernel32.SetFileTime(
+            handle, ctypes.byref(filetime), ctypes.byref(filetime), ctypes.byref(filetime)
+        )
+    finally:
+        ctypes.windll.kernel32.CloseHandle(handle)
 
 
 # Run this with `uvicorn server_name:app --reload`

@@ -376,11 +376,12 @@ class Behaviours:
                 Class="flex items-center justify-center"
                 )]
             procedures_items.append(Properties.item(None, procedure['info']['name'], None, action, right))
-            procedures_container.append(Properties.container("Procedures", procedures_items, None))
+        
+        procedures_container = (Properties.container("Procedures", procedures_items, None))
 
         return Div(
             Structure.sticky_top_navigation_bar(top_menu),
-            *procedures_container,
+            procedures_container,
             Class="w-full h-full flex flex-col gap-2 items-center justify-start min-h-48 text-lg text-zinc-500 bg-zinc-700",
             Id="edit-options-screen"
         )
@@ -583,7 +584,7 @@ class Behaviours:
         url = "http://127.0.0.1:8000/process-payload"
         data = {"payload": State.current_payload}
 
-        timeout = httpx.Timeout(120.0)
+        timeout = httpx.Timeout(360.0)
 
         async with httpx.AsyncClient(timeout=timeout) as client:
             try:

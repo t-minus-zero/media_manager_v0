@@ -138,18 +138,33 @@ class AndroidOps:
         except Exception as e:
             log.log_error("AndroidOps.swipe_by_percentage", step_description, str(e))
 
+
     # Function to scroll until an element is visible and click it
     async def scroll_until_visible(self, scrollable_xpath, target_xpath, step_description, max_swipes=5, timeout=10):
         self.check_driver_session()  # Ensure the session is active
         try:
+            # First, check if the target element is already visible
+            try:
+                target_element = WebDriverWait(self.driver, timeout).until(
+                    EC.presence_of_element_located((AppiumBy.XPATH, target_xpath))
+                )
+                target_element.click()
+                log.log_success("AndroidOps.scroll_until_visible", f"{step_description} - Element is already visible and clicked")
+                return True
+            except Exception:
+                # Target is not visible; continue to scroll
+                pass
+
+            # Locate the scrollable element
             scrollable_element = WebDriverWait(self.driver, timeout).until(
                 EC.presence_of_element_located((AppiumBy.XPATH, scrollable_xpath))
             )
             bounds = scrollable_element.rect
-            start_x = bounds['x'] + bounds['width'] * 0.9
-            end_x = bounds['x'] + bounds['width'] * 0.1
+            start_x = bounds['x'] + bounds['width'] * 0.6
+            end_x = bounds['x'] + bounds['width'] * 0.4
             y = bounds['y'] + bounds['height'] / 2
 
+            # Perform the scroll action
             for i in range(max_swipes):
                 try:
                     target_element = self.driver.find_element(AppiumBy.XPATH, target_xpath)
@@ -157,6 +172,7 @@ class AndroidOps:
                     log.log_success("AndroidOps.scroll_until_visible", f"{step_description} - Element is now visible and clicked")
                     return True
                 except Exception:
+                    # Scroll by swiping if target is not visible
                     action = ActionBuilder(self.driver)
                     action.pointer_action.move_to_location(start_x, y)
                     action.pointer_action.pointer_down()
@@ -169,6 +185,7 @@ class AndroidOps:
         except Exception as e:
             log.log_error("AndroidOps.scroll_until_visible", step_description, str(e))
             return False
+
 
     # Function to execute steps from JSON instructions
     async def execute_steps(self, instructions):
